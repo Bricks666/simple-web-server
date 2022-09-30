@@ -2,7 +2,8 @@
 #include "general.h"
 #include "Client.h"
 
-namespace server {
+namespace server
+{
 
 	class Server
 	{
@@ -23,8 +24,7 @@ namespace server {
 		int epoll;
 
 		void callback(const int count);
-		void addClient(const SOCKET hostSocket, struct epoll_event& event);
+		void addClient(const SOCKET hostSocket, struct epoll_event &event);
 	};
-
 
 }

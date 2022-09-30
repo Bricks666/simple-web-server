@@ -10,11 +10,15 @@ Client::Client() {
 Client::Client(SOCKET s) {
 	connectSocket = s;
 	state = STATES::ACCEPTED;
+	event.data.fd = s;
+	event.events = EPOLLIN | EPOLLERR | EPOLLHUP | EPOLLOUT;
 	cout << "Client created" << endl;
 }
 
 Client::~Client() {
-	closesocket(connectSocket);
+	if(connectSocket != INVALID_SOCKET) {
+		closesocket(connectSocket);
+	}
 	cout << "Client destroyed" << endl;
 }
 

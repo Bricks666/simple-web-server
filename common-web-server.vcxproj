@@ -143,7 +143,6 @@
     <ClCompile Include="Client.cpp" />
     <ClCompile Include="common-web-server.cpp" />
     <ClCompile Include="Epoll.cpp" />
-    <ClCompile Include="get_file.cpp" />
     <ClCompile Include="Response.cpp" />
     <ClCompile Include="Server.cpp" />
   </ItemGroup>

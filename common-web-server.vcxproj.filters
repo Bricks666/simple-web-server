@@ -24,9 +24,6 @@
     <ClCompile Include="Server.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="get_file.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
     <ClCompile Include="Response.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>

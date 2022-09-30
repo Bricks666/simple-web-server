@@ -12,7 +12,7 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <sys/epoll.h>
-#else 
+#else
 #include <Windows.h>
 #include <Winsock2.h>
 #include <winsock.h>
@@ -28,16 +28,14 @@
 #include <map>
 #include <vector>
 
-
 #ifdef WIN32
-#define SET_NONBLOCK(socket)	\
-	if (true)					\
-	{							\
-		DWORD dw = true;			\
-		ioctlsocket(socket, FIONBIO, &dw);	\
+#define SET_NONBLOCK(socket)               \
+	if (true)                              \
+	{                                      \
+		DWORD dw = true;                   \
+		ioctlsocket(socket, FIONBIO, &dw); \
 	}
 #endif // WIN32
-
 
 using namespace std;
 

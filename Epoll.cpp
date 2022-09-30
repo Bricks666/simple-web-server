@@ -7,11 +7,14 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #else
+#include <iostream>
 #include <Winsock2.h>
 #pragma comment(lib, "ws2_32.lib")
 #endif
 
-std::map<int, epoll_event> epollMapSockets;
+using namespace std;
+
+map<int, epoll_event> epollMapSockets;
 
 int epoll_create(int size)
 {
@@ -50,17 +53,17 @@ int epoll_wait(int epfd, struct epoll_event* events, int maxevents, int timeout)
 
 	//Заполняем структуры сокетами
 	int nFDS = 0;
-	for (auto it = epollMapSockets.begin(); it != epollMapSockets.end(); ++it)
+	for (auto client = epollMapSockets.begin(); client != epollMapSockets.end(); ++client)
 	{
-		if (it->first == -1)
+		if (client->first == -1)
 			continue;
 
-		if (it->first > nFDS)
-			nFDS = it->first;
+		if (client->first > nFDS)
+			nFDS = client->first;
 
-		FD_SET(it->first, &readfds);
-		FD_SET(it->first, &writefds);
-		FD_SET(it->first, &exceptfds);
+		FD_SET(client->first, &readfds);
+		FD_SET(client->first, &writefds);
+		FD_SET(client->first, &exceptfds);
 	}
 
 	//Задаем интервал ожидания
@@ -68,26 +71,28 @@ int epoll_wait(int epfd, struct epoll_event* events, int maxevents, int timeout)
 	tv.tv_sec = timeout / 1000;
 	tv.tv_usec = timeout - tv.tv_sec * 1000;
 
-	//Ждем событий
-	nFDS++;
-	select(nFDS, &readfds, &writefds, &exceptfds, &tv);
+	int error = select(nFDS + 1, &readfds, &writefds, &exceptfds, &tv);
 
-	//Заполняем структуру для отправки программе так, как будто она вызвала epoll
+	if (error == -1) {
+		return error;
+	}
+
 	int nRetEvents = 0;
-	for (auto it = epollMapSockets.begin(); (it != epollMapSockets.end() && nRetEvents < maxevents); ++it)
+	for (auto client = epollMapSockets.begin(); (client != epollMapSockets.end() && nRetEvents < maxevents); ++client)
 	{
-		if (it->first == -1)
+		if (client->first == -1)
 			continue;
-		if (!FD_ISSET(it->first, &readfds) && !FD_ISSET(it->first, &writefds) && !FD_ISSET(it->first, &exceptfds))
+		
+		if (!FD_ISSET(client->first, &readfds) && !FD_ISSET(client->first, &writefds) && !FD_ISSET(client->first, &exceptfds))
 			continue;
 
-		memcpy(&events[nRetEvents].data, &it->second.data, sizeof(epoll_data));
+		memcpy(&events[nRetEvents].data, &client->second.data, sizeof(epoll_data));
 
-		if (FD_ISSET(it->first, &readfds))
+		if (FD_ISSET(client->first, &readfds))
 			events[nRetEvents].events |= EPOLLIN;
-		if (FD_ISSET(it->first, &writefds))
+		if (FD_ISSET(client->first, &writefds))
 			events[nRetEvents].events |= EPOLLOUT;
-		if (FD_ISSET(it->first, &exceptfds))
+		if (FD_ISSET(client->first, &exceptfds))
 			events[nRetEvents].events |= EPOLLERR;
 
 		nRetEvents++;
