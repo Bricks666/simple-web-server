@@ -11,13 +11,13 @@ Server::~Server()
 {
 }
 
-int Server::start()
+int Server::Start()
 {
 	int result = WSAStartup(MAKEWORD(2, 2), &wsaData);
 
 	if (result)
 	{
-		close();
+		Close();
 		return -1;
 	}
 
@@ -26,30 +26,30 @@ int Server::start()
 	addrInfo.sin_port = htons(PORT);
 	addrInfo.sin_family = AF_INET;
 
-	connectSocket = socket(addrInfo.sin_family, SOCK_STREAM, IPPROTO_TCP);
-	SET_NONBLOCK(connectSocket);
+	connect_socket = socket(addrInfo.sin_family, SOCK_STREAM, IPPROTO_TCP);
+	SET_NONBLOCK(connect_socket);
 
-	if (connectSocket == INVALID_SOCKET || connectSocket == SOCKET_ERROR)
+	if (connect_socket == INVALID_SOCKET || connect_socket == SOCKET_ERROR)
 	{
-		close();
+		Close();
 		cout << "Invalid socket" << endl;
 		return -1;
 	}
 
-	result = bind(connectSocket,
+	result = bind(connect_socket,
 				  reinterpret_cast<struct sockaddr *>(&addrInfo),
 				  sizeof(addrInfo));
 	if (result == SOCKET_ERROR)
 	{
-		close();
+		Close();
 		cout << "Invalid bind" << endl;
 		return -1;
 	}
 
-	result = listen(connectSocket, SOMAXCONN);
+	result = listen(connect_socket, SOMAXCONN);
 	if (result == SOCKET_ERROR)
 	{
-		close();
+		Close();
 		cout << "Invalid listen" << endl;
 		return -1;
 	}
@@ -61,24 +61,26 @@ int Server::start()
 		return 0;
 	}
 
-	listenEvent.data.fd = connectSocket;
+	listenEvent.data.fd = connect_socket;
 	listenEvent.events = EPOLLIN | EPOLLET;
 
-	epoll_ctl(epoll, EPOLL_CTL_ADD, connectSocket, &listenEvent);
+	epoll_ctl(epoll, EPOLL_CTL_ADD, connect_socket, &listenEvent);
 
-	handle();
+	Handle();
 }
 
-void Server::close()
+void Server::Close()
 {
-	closesocket(connectSocket);
-	connectSocket = INVALID_SOCKET;
+	closesocket(connect_socket);
+	connect_socket = INVALID_SOCKET;
+  #ifdef _WIN32
 	WSACleanup();
 	cout << "Server has been stopped\n"
 		 << WSAGetLastError() << endl;
+  #endif
 }
 
-void Server::handle()
+void Server::Handle()
 {
 	while (true)
 	{

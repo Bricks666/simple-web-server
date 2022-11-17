@@ -6,6 +6,6 @@ using namespace server;
 int main()
 {
 	Server server = Server();
-	server.start();
+	server.Start();
 	return 0;
 }

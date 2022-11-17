@@ -1,7 +1,12 @@
 #pragma once
 #include "general.h"
-namespace server {
-	enum class STATES {
+#include "Request.h"
+#include "Response.h"
+
+namespace server
+{
+	enum class STATES
+	{
 		READING,
 		READED,
 		WRITTING,
@@ -9,7 +14,8 @@ namespace server {
 		ACCEPTED
 	};
 
-	enum class CODES {
+	enum class CODES
+	{
 		ERROR_CODE,
 		WAIT_CODE,
 		READY_CODE
@@ -18,20 +24,19 @@ namespace server {
 	class Client
 	{
 	public:
-		explicit  Client();
-		explicit  Client(SOCKET s);
+		explicit Client();
+		explicit Client(SOCKET s);
 		~Client();
-		void Handle();
 		bool Continue();
 		void SetState(const STATES newState);
 		STATES GetState() const;
 		const struct epoll_event GetEvent() const;
 
 	private:
-		SOCKET connectSocket;
+		SOCKET connected_socket;
 		STATES state;
-		vector<char> received;
-		vector<char> sended;
+		Request request;
+		Response response;
 		struct epoll_event event;
 
 		CODES ContinueReading();
@@ -39,5 +44,3 @@ namespace server {
 		CODES InitRead();
 	};
 }
-
-

@@ -1,6 +1,6 @@
 #include "Epoll.h"
 #include <map>
-#ifndef WIN32
+#ifndef _WIN32
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -14,7 +14,7 @@
 
 using namespace std;
 
-map<int, epoll_event> epollMapSockets;
+map<int, epoll_event> epoll_map_sockets;
 
 int epoll_create(int size)
 {
@@ -27,13 +27,13 @@ int epoll_ctl(int epfd, int op, int fd, struct epoll_event* event)
 	{
 	case EPOLL_CTL_ADD:
 	case EPOLL_CTL_MOD:
-		epollMapSockets[fd] = *event;
+		epoll_map_sockets[fd] = *event;
 		return 0;
 	case EPOLL_CTL_DEL:
-		if (epollMapSockets.find(fd) == epollMapSockets.end())
+		if (epoll_map_sockets.find(fd) == epoll_map_sockets.end())
 			return -1;
 
-		epollMapSockets.erase(fd);
+		epoll_map_sockets.erase(fd);
 		return 0;
 	}
 	return 0;
@@ -53,7 +53,7 @@ int epoll_wait(int epfd, struct epoll_event* events, int maxevents, int timeout)
 
 	//Заполняем структуры сокетами
 	int nFDS = 0;
-	for (auto client = epollMapSockets.begin(); client != epollMapSockets.end(); ++client)
+	for (auto client = epoll_map_sockets.begin(); client != epoll_map_sockets.end(); ++client)
 	{
 		if (client->first == -1)
 			continue;
@@ -78,7 +78,7 @@ int epoll_wait(int epfd, struct epoll_event* events, int maxevents, int timeout)
 	}
 
 	int nRetEvents = 0;
-	for (auto client = epollMapSockets.begin(); (client != epollMapSockets.end() && nRetEvents < maxevents); ++client)
+	for (auto client = epoll_map_sockets.begin(); (client != epoll_map_sockets.end() && nRetEvents < maxevents); ++client)
 	{
 		if (client->first == -1)
 			continue;

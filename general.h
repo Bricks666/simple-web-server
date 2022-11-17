@@ -1,11 +1,10 @@
-#pragma once
 #ifndef GENERAL
 #define GENERAL
 #define WIN32_LEAN_AND_MEAN
 
-#define PORT 3000
+#define PORT 3001
 
-#ifndef WIN32
+#ifndef _WIN32
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -19,7 +18,7 @@
 #include <WS2tcpip.h>
 #include "epoll.h"
 #pragma comment(lib, "ws2_32.lib")
-#endif // !WIN32
+#endif
 
 #include <iostream>
 #include <string>
@@ -27,8 +26,9 @@
 #include <fstream>
 #include <map>
 #include <vector>
+#include <memory>
 
-#ifdef WIN32
+#ifdef _WIN32
 #define SET_NONBLOCK(socket)               \
 	if (true)                              \
 	{                                      \

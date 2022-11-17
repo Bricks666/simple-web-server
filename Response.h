@@ -3,8 +3,14 @@
 
 class Response
 {
-public:
-	static string get_document(string path);
-	static string get_answer(string body);
+	public:
+		int code = 200;
+		string redicret_URL = "";
+		string body = "0" ;
+		string answer;
+		string make_answer();
+	private:
+		static map<int, string> response_name;
+		static string get_header(const string name, const string value);
 };
 

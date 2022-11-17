@@ -11,9 +11,9 @@ namespace server
 	public:
 		Server();
 		~Server();
-		int start();
-		void handle();
-		void close();
+		int Start();
+		void Handle();
+		void Close();
 
 	private:
 		WSAData wsaData;

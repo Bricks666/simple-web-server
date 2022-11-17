@@ -1,32 +1,20 @@
 #include "Response.h"
 
 
-string Response::get_document(string path) {
-	ifstream document;
-	string stringifyDocument = "";
-	document.open(path, ios::in);
-	if (document.is_open()) {
-		string line = "";
-		while (getline(document, line))
-		{
-			stringifyDocument += line;
-		}
-	}
-
-	document.close();
-
-	return stringifyDocument;
+string Response::get_header(const string name, const string value) {
+	return name + " " + value + ";\r\n";
 }
 
-string Response::get_answer(string body) {
-	ostringstream strStream;
-	strStream <<
-		"HTTP/1.1 200 OK\r\n"
-		<< "Content-Type: text/html; charset=utf-8\r\n"
-		<< "Content-Length: " << body.length() << "\r\n" <<
-		"\r\n" <<
-		body.c_str();
+string Response::make_answer() {
+	string stringify_answer;
+	stringify_answer.append("HTTP/1.1 200").append(" OK\r\n")
+		.append(Response::get_header("Content-Type:", "text/html")) 
+		.append(Response::get_header("charset=", "utf-8")) 
+		.append(Response::get_header("Content-Length:", to_string(body.length())))
+		.append(Response::get_header("\r\n", body));
 
-	return strStream.str();
+	answer = stringify_answer;
+
+	return answer;
 }  
 

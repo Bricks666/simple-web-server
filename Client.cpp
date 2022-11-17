@@ -1,5 +1,6 @@
 #include "Client.h"
 #include "Response.h"
+#include "File.h"
 
 using namespace server;
 
@@ -8,7 +9,7 @@ Client::Client() {
 }
 
 Client::Client(SOCKET s) {
-	connectSocket = s;
+	connected_socket = s;
 	state = STATES::ACCEPTED;
 	event.data.fd = s;
 	event.events = EPOLLIN | EPOLLERR | EPOLLHUP | EPOLLOUT;
@@ -16,8 +17,8 @@ Client::Client(SOCKET s) {
 }
 
 Client::~Client() {
-	if(connectSocket != INVALID_SOCKET) {
-		closesocket(connectSocket);
+	if(connected_socket != INVALID_SOCKET) {
+		closesocket(connected_socket);
 	}
 	cout << "Client destroyed" << endl;
 }
@@ -31,7 +32,7 @@ STATES Client::GetState() const {
 }
 
 bool Client::Continue() {
- 	if (connectSocket == INVALID_SOCKET) {
+ 	if (connected_socket == INVALID_SOCKET) {
 		return false;
 	}
 
@@ -87,13 +88,13 @@ bool Client::Continue() {
 CODES Client::ContinueReading() {
 	char buffer[4096];
 
-	int writed = recv(connectSocket, buffer, sizeof(buffer), NULL);
+	const int writed = recv(connected_socket, buffer, sizeof(buffer), NULL);
 	if (writed >= 0) {
-		received.resize(received.size() + writed);
-		memcpy(&received[received.size() - writed], buffer, writed);
-		cout << received.data() << endl;;
+		request.content.resize(request.content.size() + writed);
+		memcpy(&request.content[request.content.size() - writed], buffer, writed);
+		cout << request.content << endl;;
 
-		const std::string strInputString((const char*)&received[0]);
+		const string strInputString(request.content.c_str());
 		if (strInputString.find("\r\n\r\n") != -1)
 			return CODES::READY_CODE;
 
@@ -104,16 +105,16 @@ CODES Client::ContinueReading() {
 }
 
 CODES Client::ContinueWritting() {
-	int result = send(connectSocket, &sended[0], sended.size(), NULL);
+	const int result = send(connected_socket, &response.answer[0], response.answer.size(), NULL);
 	
-	if (result == sended.size()) {
+	if (result == response.answer.size()) {
 		return CODES::READY_CODE;
 	}
 
 	if (result > 0) {
-		vector<char> temp(sended.size() - result);
-		memcpy(&temp[0], &sended[result], sended.size() - result);
-		sended = temp;
+		string temp;
+		memcpy(&temp[0], &response.answer[result], response.answer.size() - result);
+		response.answer = temp;
 
 		return CODES::WAIT_CODE;
 
@@ -123,10 +124,15 @@ CODES Client::ContinueWritting() {
 }
 
 CODES Client::InitRead() {
-	string document = Response::get_document("./document/index.html");
-	string answer = Response::get_answer(document);
-	sended.resize(answer.length());
-	memcpy(&sended[0], answer.c_str(), answer.length());
+	const string path = request.get_URL();
+	const string document = File::get_document("./document" + (path != "/" && path != "" ? path : "/index") + ".html");
+	if (document == "") {
+		response.code = 301;
+		response.redicret_URL = "/error";
+		return CODES::READY_CODE;
+	}
+	response.body = document;
+	response.make_answer();
 
 	return CODES::READY_CODE;
 }
