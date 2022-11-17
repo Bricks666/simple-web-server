@@ -1,9 +1,11 @@
 #include "File.h"
 
-string File::get_document(string path) {
+using namespace server;
+
+string File::GetDocument(string path) {
 	ifstream document;
 	string stringifyDocument = "";
-	document.open(path, ios::in);
+	document.open(HOME + path, ios::in);
 	if (document.is_open()) {
 		string line = "";
 		while (getline(document, line))

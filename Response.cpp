@@ -1,20 +1,34 @@
 #include "Response.h"
 
+using namespace server;
 
-string Response::get_header(const string name, const string value) {
-	return name + " " + value + ";\r\n";
+string Response::GetHeader(const string name, const string value, const string separator = ":", const string end = ";")
+{
+  return name + separator + value + end + "\r\n";
 }
 
-string Response::make_answer() {
-	string stringify_answer;
-	stringify_answer.append("HTTP/1.1 200").append(" OK\r\n")
-		.append(Response::get_header("Content-Type:", "text/html")) 
-		.append(Response::get_header("charset=", "utf-8")) 
-		.append(Response::get_header("Content-Length:", to_string(body.length())))
-		.append(Response::get_header("\r\n", body));
+string Response::MakeAnswer()
+{
+  string stringify_answer;
+  stringify_answer.append("HTTP/1.1 ").append(to_string(code)).append(" Moved Permanently\r\n").append(Response::GetHeader("charset", "utf-8", "="));
 
-	answer = stringify_answer;
+  switch (code)
+  {
+  case 200:
+    stringify_answer
+        .append(Response::GetHeader("Content-Type", "text/html", ":"))
+        .append(Response::GetHeader("Content-Length", to_string(body.length())))
+        .append(Response::GetHeader("\r\n", body, ""));
+    break;
+  case 301:
+    stringify_answer
+        .append(Response::GetHeader("Location", redirect_URL, ":", ""));
+    break;
+  default:
+    break;
+  }
 
-	return answer;
-}  
+  answer = stringify_answer;
 
+  return answer;
+}

@@ -9,22 +9,23 @@ namespace server
 	{
 
 	public:
-		Server();
-		~Server();
 		int Start();
 		void Handle();
 		void Close();
 
 	private:
-		WSAData wsaData;
-		SOCKET connectSocket;
+    #ifdef _WIN32
+		  WSAData wsa_data;
+    #endif
+
+		SOCKET connect_socket;
 		map<SOCKET, shared_ptr<Client>> clients;
-		struct epoll_event listenEvent;
+		struct epoll_event listen_event;
 		vector<struct epoll_event> events;
 		int epoll;
 
-		void callback(const int count);
-		void addClient(const SOCKET hostSocket, struct epoll_event &event);
+		void Callback(const int count);
+		void AddClient(const SOCKET hostSocket, struct epoll_event &event);
 	};
 
 }

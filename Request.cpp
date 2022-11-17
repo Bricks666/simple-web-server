@@ -1,7 +1,8 @@
 #include "Request.h"
 
+using namespace server;
 
-string Request::get_URL() {
+string Request::GetURL() {
 	const int start_index = content.find("/");
 	const int end_index = content.find("HTTP") - 1;
 

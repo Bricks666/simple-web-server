@@ -1,16 +1,16 @@
 #pragma once
 #include "general.h"
-#include "Request.h"
-#include "Response.h"
+#include "Request.cpp"
+#include "Response.cpp"
 
 namespace server
 {
 	enum class STATES
 	{
 		READING,
-		READED,
-		WRITTING,
-		WRITED,
+		READ,
+		WRITING,
+		WRITTEN,
 		ACCEPTED
 	};
 
@@ -40,7 +40,7 @@ namespace server
 		struct epoll_event event;
 
 		CODES ContinueReading();
-		CODES ContinueWritting();
+		CODES ContinueWriting();
 		CODES InitRead();
 	};
 }

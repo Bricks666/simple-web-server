@@ -1,166 +1,175 @@
 #include "Server.h"
-#include "Client.h"
+#include "Client.cpp"
 
 using namespace server;
 
-Server::Server()
-{
-}
-
-Server::~Server()
-{
-}
-
 int Server::Start()
 {
-	int result = WSAStartup(MAKEWORD(2, 2), &wsaData);
+  int result;
 
-	if (result)
-	{
-		Close();
-		return -1;
-	}
+#ifdef _WIN32
+  result = WSAStartup(MAKEWORD(2, 2), &wsa_data);
 
-	SOCKADDR_IN addrInfo;
-	addrInfo.sin_addr.S_un.S_addr = INADDR_ANY;
-	addrInfo.sin_port = htons(PORT);
-	addrInfo.sin_family = AF_INET;
+  if (result)
+  {
+    Close();
+    return -1;
+  }
+#endif
 
-	connect_socket = socket(addrInfo.sin_family, SOCK_STREAM, IPPROTO_TCP);
-	SET_NONBLOCK(connect_socket);
+  sockaddr_in address_info;
+  address_info.sin_addr.s_addr = INADDR_ANY;
+  address_info.sin_port = htons(PORT);
+  address_info.sin_family = AF_INET;
 
-	if (connect_socket == INVALID_SOCKET || connect_socket == SOCKET_ERROR)
-	{
-		Close();
-		cout << "Invalid socket" << endl;
-		return -1;
-	}
+  connect_socket = socket(address_info.sin_family, SOCK_STREAM, IPPROTO_TCP);
+  SET_NONBLOCK(connect_socket);
 
-	result = bind(connect_socket,
-				  reinterpret_cast<struct sockaddr *>(&addrInfo),
-				  sizeof(addrInfo));
-	if (result == SOCKET_ERROR)
-	{
-		Close();
-		cout << "Invalid bind" << endl;
-		return -1;
-	}
+  if (connect_socket == INVALID_SOCKET)
+  {
+    Close();
+    cout << "Invalid socket" << endl;
+    return -1;
+  }
 
-	result = listen(connect_socket, SOMAXCONN);
-	if (result == SOCKET_ERROR)
-	{
-		Close();
-		cout << "Invalid listen" << endl;
-		return -1;
-	}
+  result = bind(connect_socket,
+                reinterpret_cast<struct sockaddr *>(&address_info),
+                sizeof(address_info));
+  if (result == INVALID_SOCKET)
+  {
+    Close();
+    cout << "Invalid bind" << endl;
+    return -1;
+  }
 
-	epoll = epoll_create(1);
-	if (epoll == -1)
-	{
-		cout << "Error creation epoll" << endl;
-		return 0;
-	}
+  result = listen(connect_socket, SOMAXCONN);
+  if (result == INVALID_SOCKET)
+  {
+    Close();
+    cout << "Invalid listen" << endl;
+    return -1;
+  }
 
-	listenEvent.data.fd = connect_socket;
-	listenEvent.events = EPOLLIN | EPOLLET;
+  epoll = epoll_create(1);
+  if (epoll == -1)
+  {
+    cout << "Error creation epoll" << endl;
+    return 0;
+  }
 
-	epoll_ctl(epoll, EPOLL_CTL_ADD, connect_socket, &listenEvent);
+  listen_event.data.fd = connect_socket;
+  listen_event.events = EPOLLIN | EPOLLET;
 
-	Handle();
+  epoll_ctl(epoll, EPOLL_CTL_ADD, connect_socket, &listen_event);
+
+  Handle();
+
+  return 0;
 }
 
 void Server::Close()
 {
-	closesocket(connect_socket);
-	connect_socket = INVALID_SOCKET;
-  #ifdef _WIN32
-	WSACleanup();
-	cout << "Server has been stopped\n"
-		 << WSAGetLastError() << endl;
-  #endif
+  closesocket(connect_socket);
+  connect_socket = INVALID_SOCKET;
+#ifdef _WIN32
+  WSACleanup();
+  cout << "Server has been stopped\n"
+       << WSAGetLastError() << endl;
+#endif
 }
 
 void Server::Handle()
 {
-	while (true)
-	{
-		events.resize(clients.size() + 1);
-		int count = epoll_wait(epoll, &events[0], events.size(), 5000);
-		cout << count << " count" << endl;
-		if (count == -1)
-		{
-			continue;
-		}
+  while (true)
+  {
+    events.resize(clients.size() + 1);
+    int count = epoll_wait(epoll, &events[0], events.size(), 5000);
+    cout << count << " count" << endl;
+    if (count == -1)
+    {
+      continue;
+    }
 
-		callback(count);
-	}
+    Callback(count);
+  }
 }
 
-void Server::callback(const int count)
+void Server::Callback(const int count)
 {
-	for (int i = 0; i < count; i++)
-	{
-		SOCKET hSocketIn = events[i].data.fd;
+  for (int i = 0; i < count; i++)
+  {
+    SOCKET input_socket = events[i].data.fd;
 
-		if (listenEvent.data.fd == (int)hSocketIn)
-		{
-			if (!events[i].events == EPOLLIN)
-				continue;
+    if (listen_event.data.fd == input_socket)
+    {
+      if (!events[i].events == EPOLLIN)
+        continue;
 
-			struct sockaddr_in socket_address;
-			size_t socket_address_len = sizeof(socket_address);
-			const SOCKET socket_descriptor = accept(hSocketIn, (struct sockaddr *)&socket_address, (int *)&socket_address_len);
+      struct sockaddr_in socket_address;
+      socklen_t socket_address_len = sizeof(socket_address);
 
-			if (socket_descriptor != INVALID_SOCKET)
-			{
-				clients[socket_descriptor] = shared_ptr<Client>(new Client(socket_descriptor));
+#ifdef _WIN32
+      const SOCKET socket_descriptor = accept(input_socket, (struct sockaddr *)&socket_address, (int *)&socket_address_len);
+#else
+      const SOCKET socket_descriptor = accept(input_socket, (struct sockaddr *)&socket_address, &socket_address_len);
+#endif
 
-				auto it = clients.find(socket_descriptor);
-				if (it == clients.end())
-					continue;
+      if (socket_descriptor != INVALID_SOCKET)
+      {
+        clients[socket_descriptor] = shared_ptr<Client>(new Client(socket_descriptor));
 
-				struct epoll_event event = it->second->GetEvent();
-				epoll_ctl(epoll, EPOLL_CTL_ADD, it->first, &event);
-			}
-			continue;
-		}
+        auto it = clients.find(socket_descriptor);
+        if (it == clients.end())
+          continue;
 
-		auto client = clients.find(events[i].data.fd);
-		if (client == clients.end())
-			continue;
+        struct epoll_event event = it->second->GetEvent();
+        epoll_ctl(epoll, EPOLL_CTL_ADD, it->first, &event);
+      }
+      continue;
+    }
 
-		if (!client->second->Continue())
-		{
-			epoll_ctl(epoll, EPOLL_CTL_DEL, client->first, NULL);
-			clients.erase(client);
-		}
-	}
+    auto client = clients.find(events[i].data.fd);
+    if (client == clients.end())
+      continue;
+
+    if (!client->second->Continue())
+    {
+      epoll_ctl(epoll, EPOLL_CTL_DEL, client->first, NULL);
+      clients.erase(client);
+    }
+  }
 }
 
-void Server::addClient(const SOCKET hostSocket, struct epoll_event &event)
+void Server::AddClient(const SOCKET host_socket, struct epoll_event &event)
 {
-	if (listenEvent.data.fd == hostSocket)
-	{
-		if (event.events != EPOLLIN)
-		{
-			return;
-		}
-		struct sockaddr_in clientSocketAddr;
-		size_t clientLen = sizeof(clientSocketAddr);
+  if (listen_event.data.fd == host_socket)
+  {
+    if (event.events != EPOLLIN)
+    {
+      return;
+    }
+    struct sockaddr_in client_socket_address;
+    socklen_t client_length = sizeof(client_socket_address);
 
-		const SOCKET clientSocket = accept(hostSocket, (struct sockaddr *)&clientSocketAddr, (int *)&clientLen);
+#ifdef _WIN32
+    const SOCKET client_socket = accept(host_socket, (struct sockaddr *)&client_socket_address, (int *)&client_length);
+#else
+    const SOCKET client_socket = accept(host_socket, (struct sockaddr *)&client_socket_address, &client_length);
+#endif
 
-		if (clientSocket != INVALID_SOCKET)
-		{
-			clients[hostSocket] = shared_ptr<Client>(new Client(clientSocket));
+    if (client_socket == INVALID_SOCKET)
+    {
+      return;
+    }
 
-			auto client = clients.find(hostSocket);
-			if (client == clients.end())
-			{
-				return;
-			}
-			struct epoll_event event = client->second->GetEvent();
-			epoll_ctl(epoll, EPOLL_CTL_ADD, client->first, &event);
-		}
-	}
+    clients[host_socket] = shared_ptr<Client>(new Client(client_socket));
+
+    auto client = clients.find(host_socket);
+    if (client == clients.end())
+    {
+      return;
+    }
+    struct epoll_event event = client->second->GetEvent();
+    epoll_ctl(epoll, EPOLL_CTL_ADD, client->first, &event);
+  }
 }

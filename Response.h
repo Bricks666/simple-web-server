@@ -1,16 +1,18 @@
 #pragma once
 #include "general.h"
 
-class Response
+namespace server
 {
-	public:
-		int code = 200;
-		string redicret_URL = "";
-		string body = "0" ;
-		string answer;
-		string make_answer();
-	private:
-		static map<int, string> response_name;
-		static string get_header(const string name, const string value);
-};
-
+  class Response
+  {
+  public:
+    int code = 200;
+    string redirect_URL = "";
+    string body = "";
+    string answer;
+    string MakeAnswer();
+  private:
+    static map<int, string> response_name;
+    static string GetHeader(const string name, const string value, const string separator, const string end);
+  };
+}
