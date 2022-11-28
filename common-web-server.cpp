@@ -1,5 +1,5 @@
 ﻿#include "general.h"
-#include "Server.cpp"
+#include "Server.h"
 
 using namespace server;
 

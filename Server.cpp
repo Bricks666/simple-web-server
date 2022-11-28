@@ -1,5 +1,5 @@
 #include "Server.h"
-#include "Client.cpp"
+#include "Client.h"
 
 using namespace server;
 

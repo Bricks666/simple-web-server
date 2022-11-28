@@ -1,7 +1,7 @@
 #pragma once
 #include "general.h"
-#include "Request.cpp"
-#include "Response.cpp"
+#include "Request.h"
+#include "Response.h"
 
 namespace server
 {

@@ -12,9 +12,8 @@
 #include <netdb.h>
 #include <sys/epoll.h>
 #else
-#include <Windows.h>
 #include <Winsock2.h>
-#include <winsock.h>
+#include <Windows.h>
 #include <WS2tcpip.h>
 #include "epoll.h"
 #pragma comment(lib, "ws2_32.lib")
@@ -46,6 +45,8 @@
 #define SOCKET int
 #define INVALID_SOCKET -1
 #endif
+
+
 
 using namespace std;
 

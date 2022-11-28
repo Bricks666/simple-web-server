@@ -1,5 +1,5 @@
 #include "Client.h"
-#include "File.cpp"
+#include "File.h"
 
 using namespace server;
 
@@ -96,13 +96,11 @@ CODES Client::ContinueReading()
   const int written = recv(connected_socket, buffer, sizeof(buffer), NULL);
   if (written > 0)
   {
-    request.content.resize(request.content.size() + written);
-    memcpy(&request.content[request.content.size() - written], buffer, written);
-    cout << request.content << endl;
-    ;
+    const string string_request(buffer, written);
+    request.ParseRequest(string_request);
+    cout << string_request << endl;
 
-    const string strInputString(request.content.c_str());
-    if (strInputString.find("\r\n\r\n") != -1)
+    if (string_request.find("\r\n\r\n") != -1)
       return CODES::READY_CODE;
 
     return CODES::WAIT_CODE;

@@ -7,7 +7,13 @@ namespace server
   class Request
   {
   public:
-    string content;
-    string GetURL();
+    void ParseRequest(string _request);
+
+    map<string, string> headers;
+    const string& GetURL();
+  private:
+      string url;
+      string request;
+      static map<string, string> ParseHeaders(string& _request);
   };
 }
