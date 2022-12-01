@@ -9,26 +9,29 @@ string Response::GetHeader(const string name, const string value, const string s
 
 string Response::MakeAnswer()
 {
-  string stringify_answer;
-  stringify_answer.append("HTTP/1.1 ").append(to_string(code)).append(" Moved Permanently\r\n").append(Response::GetHeader("charset", "utf-8", "="));
+    const string code = headers["Code"];
+    string stringify_answer;
+    stringify_answer.append("HTTP/1.1 ").append(code).append(" Moved Permanently\r\n").append("charset=utf8;");
 
-  switch (code)
+  switch (stoi(code))
   {
   case 200:
     stringify_answer
         .append(Response::GetHeader("Content-Type", "text/html", ":"))
-        .append(Response::GetHeader("Content-Length", to_string(body.length())))
-        .append(Response::GetHeader("\r\n", body, ""));
+        .append(Response::GetHeader("Content-Length", headers["Content-Length"]))
+        .append(Response::GetHeader("\r\n", headers["Body"], "", ""));
     break;
   case 301:
     stringify_answer
-        .append(Response::GetHeader("Location", redirect_URL, ":", ""));
+        .append(Response::GetHeader("Location", headers["Location"], ":"));
     break;
   default:
     break;
   }
 
   answer = stringify_answer;
+
+  cout  << "RESPONSE" << endl << answer << endl;
 
   return answer;
 }

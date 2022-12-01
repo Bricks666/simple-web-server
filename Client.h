@@ -28,6 +28,7 @@ namespace server
 		explicit Client(SOCKET s);
 		~Client();
 		bool Continue();
+		void Handle();
 		void SetState(const STATES newState);
 		STATES GetState() const;
 		const struct epoll_event GetEvent() const;

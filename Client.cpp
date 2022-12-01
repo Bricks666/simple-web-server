@@ -35,6 +35,12 @@ STATES Client::GetState() const
   return state;
 }
 
+void Client::Handle() {
+    while (Continue()) {
+        cout << "Work " << connected_socket << endl;
+    }
+}
+
 bool Client::Continue()
 {
   if (connected_socket == INVALID_SOCKET)
@@ -137,12 +143,14 @@ CODES Client::InitRead()
   const string document = File::GetDocument("./document" + fullpath);
   if (document == "")
   {
-    response.code = 301;
-    response.redirect_URL = "/error.html";
+      response.headers["Code"] = "301";
+      response.headers["Location"] = "/error.html";
   }
   else
   {
-    response.body = document;
+      response.headers["Body"] = document;
+      response.headers["Content-Lenght"] = document.length();
+      response.headers["Code"] = "200";
   }
   response.MakeAnswer();
 

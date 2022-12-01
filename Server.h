@@ -25,7 +25,8 @@ namespace server
 		int epoll;
 
 		void Callback(const int count);
-		void AddClient(const SOCKET hostSocket, struct epoll_event &event);
+		void AddClient(const SOCKET host_socket);
+		void CloseSocket(const SOCKET host_socket);
 	};
 
 }
