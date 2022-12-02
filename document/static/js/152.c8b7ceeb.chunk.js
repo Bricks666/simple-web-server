@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkwrench_crm=self.webpackChunkwrench_crm||[]).push([[152],{152:(e,r,c)=>{c.r(r),c.d(r,{default:()=>s});var n=c(294),t=c(250);const s=function(){return n.createElement(t.Fg,{to:"/address",replace:!0})}}}]);

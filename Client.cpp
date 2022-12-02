@@ -104,7 +104,6 @@ CODES Client::ContinueReading()
   {
     const string string_request(buffer, written);
     request.ParseRequest(string_request);
-    cout << string_request << endl;
 
     if (string_request.find("\r\n\r\n") != -1)
       return CODES::READY_CODE;
@@ -117,7 +116,7 @@ CODES Client::ContinueReading()
 
 CODES Client::ContinueWriting()
 {
-  const int result = send(connected_socket, &response.answer[0], response.answer.size(), NULL);
+  const auto result = send(connected_socket, &response.answer[0], response.answer.size(), NULL);
 
   if (result == response.answer.size())
   {
@@ -138,18 +137,20 @@ CODES Client::ContinueWriting()
 
 CODES Client::InitRead()
 {
-  const string path = request.GetURL();
-  const string fullpath = (path != "/" && path != "" ? path : "/index.html");
-  const string document = File::GetDocument("./document" + fullpath);
-  if (document == "")
+    const auto& path = request.GetURL();
+    const auto fullpath = (path != "/" && path != "" ? path : "/index.html");
+  const auto& content_type = Response::content_type[File::GetFileExtension(fullpath)];
+  const auto file = File::ReadFile("./document" + fullpath);
+  if (file == "" && content_type.find("text") == 0 )
   {
       response.headers["Code"] = "301";
-      response.headers["Location"] = "/error.html";
+      response.headers["Location"] = "/";
   }
   else
   {
-      response.headers["Body"] = document;
-      response.headers["Content-Lenght"] = document.length();
+      response.headers["Body"] = file;
+      response.headers["Content-Length"] = to_string(file.length());
+      response.headers["Content-Type"] = content_type;
       response.headers["Code"] = "200";
   }
   response.MakeAnswer();

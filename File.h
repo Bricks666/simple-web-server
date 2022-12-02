@@ -6,7 +6,7 @@ namespace server
   class File
   {
   public:
-    static string GetDocument(string path);
-    static bool is_html(const string path);
+    static string ReadFile(const string path);
+    static string GetFileExtension(const string path);
   };
 }

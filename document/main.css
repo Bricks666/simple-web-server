@@ -1,0 +1,55 @@
+:root {
+	--primary-color: #4f27bf;
+
+	--third-color-100: #6c6c6c;
+	--third-color-90: #d7d7d7;
+
+	--base-color: #1c1c1e;
+
+	--contract-color: #ffffff;
+
+	--shadow-color: rgba(2, 0, 97, 0.25);
+}
+
+@font-face {
+	font-family: 'Montserrat';
+	src: local('Montserrat') url(static/media/Montserrat.3faa3eef13649db02044.ttf) format('TrueType');
+}
+
+*,
+*::after,
+*::before {
+	box-sizing: border-box;
+}
+
+* {
+	padding: 0;
+	margin: 0;
+}
+
+input {
+	outline: none;
+}
+
+button {
+	border: none;
+
+	background-color: unset;
+}
+
+button:focus-visible {
+	outline: none;
+}
+
+ul {
+	list-style: none;
+}
+
+html {
+	font-family: 'Montserrat', sans-serif;
+	color: var(--base-color);
+	line-height: 1.2em;
+
+	background-color: var(--contract-color);
+}
+

@@ -23,6 +23,7 @@
 #include <string>
 #include <fstream>
 #include <map>
+#include <sstream>
 #include <memory.h>
 #include <memory>
 #include <vector>

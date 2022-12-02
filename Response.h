@@ -1,5 +1,6 @@
 #pragma once
 #include "general.h"
+#include "File.h"
 
 namespace server
 {
@@ -9,8 +10,10 @@ namespace server
     string answer;
     string MakeAnswer();
     map<string, string> headers;
+    static map<string, string> content_type;
+    static map<string, string> response_name;
   private:
-    static map<int, string> response_name;
-    static string GetHeader(const string name, const string value, const string separator, const string end);
+    static string MakeHeader(map<string, string> header);
   };
+
 }
